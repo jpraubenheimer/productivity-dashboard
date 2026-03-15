@@ -1,137 +1,128 @@
 /**
  * Vercel Serverless Function: /api/generate-tip
  *
- * Receives a task name via POST, calls the Claude API (claude-3-haiku-20240307),
- * and returns a short, fun motivational tip for completing that task.
+ * Calls the Anthropic Messages REST API directly (no SDK dependency) to
+ * generate a short motivational tip for a given task.
  *
- * The API key lives only in the server environment — it is never
- * exposed to the browser.
+ * Using raw fetch instead of @anthropic-ai/sdk eliminates any SDK version
+ * or module-resolution issues in the Vercel serverless environment.
  *
  * Environment variables required:
- *   ANTHROPIC_API_KEY  — set in .env.local (dev) or Vercel dashboard (prod)
+ *   ANTHROPIC_API_KEY  — set in Vercel dashboard → Settings → Environment Variables
  *
- * Error codes surfaced to the client:
- *   400  — missing / invalid task body
- *   401  — invalid or missing Anthropic API key
- *   404  — model not found (wrong model ID)
- *   429  — rate-limited or quota exceeded
- *   500  — all other unexpected server errors
+ * Anthropic REST API reference:
+ *   https://docs.anthropic.com/en/api/messages
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+/** Model to use. claude-3-haiku-20240307 is available on all account tiers. */
+const MODEL   = 'claude-3-haiku-20240307';
 
-/**
- * Claude model to use.
- *
- * NOTE ON MODEL ID FORMAT:
- *   The Anthropic API uses hyphens — NOT periods — in all model IDs.
- *   Marketing name  →  "Claude 3.5 Sonnet"
- *   API model ID    →  "claude-3-5-sonnet-20240620"  (period becomes hyphen)
- *
- * WHY claude-3-haiku-20240307?
- *   Claude 3.5 Sonnet (claude-3-5-sonnet-20240620 / 20241022) requires a paid
- *   Anthropic account tier.  Claude 3 Haiku is available on all tiers and is
- *   the fastest / most cost-efficient option for short motivational tips.
- *   Upgrade path — swap the constant below once your Anthropic account has
- *   Claude 3.5 Sonnet access:
- *     claude-3-5-sonnet-20240620   ← Claude 3.5 Sonnet (Jun 2024)
- *     claude-3-5-sonnet-20241022   ← Claude 3.5 Sonnet (Oct 2024, latest)
- *
- * See https://docs.anthropic.com/en/docs/about-claude/models for all IDs.
- */
-const MODEL = 'claude-3-haiku-20240307';
+/** Anthropic Messages endpoint */
+const API_URL = 'https://api.anthropic.com/v1/messages';
+
+/** Anthropic API version header (required) */
+const API_VER = '2023-06-01';
 
 export default async function handler(req, res) {
-  // ── 1. Method guard ───────────────────────────────────────────────────────
+
+  // ── 1. Method guard ──────────────────────────────────────────────────────
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
-  // ── 2. Input validation ───────────────────────────────────────────────────
+  // ── 2. Input validation ──────────────────────────────────────────────────
   const { task } = req.body ?? {};
-
-  if (!task || typeof task !== 'string' || task.trim().length === 0) {
-    return res.status(400).json({ error: 'A valid "task" string is required in the request body.' });
+  if (!task || typeof task !== 'string' || !task.trim()) {
+    return res.status(400).json({ error: 'A valid "task" string is required.' });
   }
 
-  // ── 3. API-key guard ──────────────────────────────────────────────────────
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('[generate-tip] ANTHROPIC_API_KEY environment variable is not set.');
-    return res.status(401).json({
-      error: 'Invalid API key — ANTHROPIC_API_KEY is missing. Add it in your Vercel environment variables.',
-    });
-  }
-
-  // ── 4. Call Claude ────────────────────────────────────────────────────────
-  try {
-    const client = new Anthropic();
-
-    const message = await client.messages.create({
-      model: MODEL,
-      max_tokens: 200,
-      messages: [
-        {
-          role: 'user',
-          content:
-            `You are an enthusiastic productivity coach. Give me ONE short, fun, and specific ` +
-            `motivational tip (2–3 sentences max) to help me complete this task: "${task.trim()}". ` +
-            `Be encouraging, creative, and a little playful. Do not use bullet points or headers — just plain text.`,
-        },
-      ],
-    });
-
-    // Extract the plain-text response from Claude's content blocks
-    const tip = message.content
-      .filter((block) => block.type === 'text')
-      .map((block) => block.text)
-      .join(' ')
-      .trim();
-
-    return res.status(200).json({ tip });
-
-  } catch (error) {
-    // ── 5. Granular error handling ─────────────────────────────────────────
-    // Log the full error on the server for debugging
-    console.error('[generate-tip] Claude API error:', {
-      status: error?.status,
-      message: error?.message,
-      error_type: error?.error?.type,
-    });
-
-    // 401 — Bad or missing API key
-    if (error?.status === 401) {
-      return res.status(401).json({
-        error: 'Invalid API key — check that ANTHROPIC_API_KEY is set correctly in Vercel.',
-      });
-    }
-
-    // 404 — Model ID not recognised by the API
-    if (error?.status === 404) {
-      return res.status(404).json({
-        error: `Model not found: "${MODEL}". Check the model ID in api/generate-tip.js.`,
-      });
-    }
-
-    // 429 — Rate-limited or monthly quota exceeded
-    if (error?.status === 429) {
-      const isQuota = error?.error?.type === 'rate_limit_error';
-      return res.status(429).json({
-        error: isQuota
-          ? 'Anthropic quota exceeded — upgrade your plan or wait for the limit to reset.'
-          : 'Rate limit reached. Please wait a moment and try again.',
-      });
-    }
-
-    // 529 — Anthropic API overloaded
-    if (error?.status === 529) {
-      return res.status(503).json({
-        error: 'Anthropic API is temporarily overloaded. Please try again in a few seconds.',
-      });
-    }
-
-    // Catch-all for unexpected errors
+  // ── 3. API-key guard ─────────────────────────────────────────────────────
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error('[generate-tip] ANTHROPIC_API_KEY is not set in environment.');
     return res.status(500).json({
-      error: `Unexpected error (${error?.status ?? 'unknown'}): ${error?.message ?? 'Please try again.'}`,
+      error: 'Server config error: ANTHROPIC_API_KEY is missing. Set it in Vercel → Settings → Environment Variables, then redeploy.',
     });
   }
+
+  // ── 4. Call Anthropic REST API directly (no SDK) ─────────────────────────
+  let anthropicRes;
+  try {
+    anthropicRes = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type':    'application/json',
+        'x-api-key':       apiKey,
+        'anthropic-version': API_VER,
+      },
+      body: JSON.stringify({
+        model:      MODEL,
+        max_tokens: 200,
+        messages: [
+          {
+            role: 'user',
+            content:
+              `You are an enthusiastic productivity coach. Give me ONE short, fun, and specific ` +
+              `motivational tip (2–3 sentences max) to help me complete this task: "${task.trim()}". ` +
+              `Be encouraging, creative, and a little playful. Plain text only — no bullet points or headers.`,
+          },
+        ],
+      }),
+    });
+  } catch (networkErr) {
+    // fetch() itself threw — network-level failure
+    console.error('[generate-tip] Network error reaching Anthropic:', networkErr.message);
+    return res.status(502).json({
+      error: `Network error: could not reach Anthropic API. ${networkErr.message}`,
+    });
+  }
+
+  // ── 5. Parse and forward the response ────────────────────────────────────
+  const data = await anthropicRes.json().catch(() => ({}));
+
+  if (!anthropicRes.ok) {
+    // Log the full Anthropic error server-side for debugging
+    console.error('[generate-tip] Anthropic API error:', {
+      status:  anthropicRes.status,
+      type:    data?.error?.type,
+      message: data?.error?.message,
+    });
+
+    // Map Anthropic HTTP status codes to friendly client messages
+    switch (anthropicRes.status) {
+      case 401:
+        return res.status(401).json({
+          error: 'Invalid API key — check ANTHROPIC_API_KEY in Vercel Environment Variables.',
+        });
+      case 403:
+        return res.status(403).json({
+          error: 'API key does not have permission to use this model. Check your Anthropic account tier.',
+        });
+      case 404:
+        return res.status(404).json({
+          error: `Anthropic says model not found: "${MODEL}". Raw message: ${data?.error?.message ?? 'none'}`,
+        });
+      case 429:
+        return res.status(429).json({
+          error: 'Rate limit or quota exceeded. Wait a moment and try again.',
+        });
+      case 529:
+        return res.status(503).json({
+          error: 'Anthropic API is temporarily overloaded. Try again in a few seconds.',
+        });
+      default:
+        return res.status(anthropicRes.status).json({
+          error: `Anthropic error ${anthropicRes.status}: ${data?.error?.message ?? 'Unknown error'}`,
+        });
+    }
+  }
+
+  // ── 6. Extract and return the tip text ───────────────────────────────────
+  const tip = (data.content ?? [])
+    .filter((block) => block.type === 'text')
+    .map((block)   => block.text)
+    .join(' ')
+    .trim();
+
+  return res.status(200).json({ tip });
 }
