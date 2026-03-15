@@ -1,7 +1,7 @@
 /**
  * Vercel Serverless Function: /api/generate-tip
  *
- * Receives a task name via POST, calls the Claude API (claude-3-5-sonnet-20240620),
+ * Receives a task name via POST, calls the Claude API (claude-3-5-sonnet-20241022),
  * and returns a short, fun motivational tip for completing that task.
  *
  * The API key lives only in the server environment — it is never
@@ -20,8 +20,11 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-/** The Claude model to use — update this string to swap models globally */
-const MODEL = 'claude-3-5-sonnet-20240620';
+/** The Claude model to use — update this string to swap models globally.
+ *  claude-3-5-sonnet-20241022 is the latest Claude 3.5 Sonnet snapshot (Oct 2024).
+ *  See https://docs.anthropic.com/en/docs/about-claude/models for current model IDs.
+ */
+const MODEL = 'claude-3-5-sonnet-20241022';
 
 export default async function handler(req, res) {
   // ── 1. Method guard ───────────────────────────────────────────────────────
