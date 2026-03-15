@@ -14,8 +14,8 @@
  *   https://docs.anthropic.com/en/api/messages
  */
 
-/** Model to use. claude-3-haiku-20240307 is available on all account tiers. */
-const MODEL   = 'claude-3-haiku-20240307';
+/** Model to use. claude-3-5-haiku-20241022 is Anthropic's latest fast/cheap model. */
+const MODEL   = 'claude-3-5-haiku-20241022';
 
 /** Anthropic Messages endpoint */
 const API_URL = 'https://api.anthropic.com/v1/messages';
