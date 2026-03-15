@@ -14,8 +14,18 @@
  *   https://docs.anthropic.com/en/api/messages
  */
 
-/** Model to use. claude-3-5-haiku-20241022 is Anthropic's latest fast/cheap model. */
-const MODEL   = 'claude-3-5-haiku-20241022';
+/**
+ * Model to use.
+ * claude-haiku-4-5 is the fastest and most affordable current Claude model —
+ * ideal for short motivational tips. See all current IDs at:
+ * https://platform.claude.com/docs/en/docs/about-claude/models
+ *
+ * Current model IDs (March 2026):
+ *   claude-haiku-4-5    ← used here — fastest, cheapest ($1/$5 per MTok)
+ *   claude-sonnet-4-6   ← best speed/intelligence balance
+ *   claude-opus-4-6     ← most powerful, highest cost
+ */
+const MODEL   = 'claude-haiku-4-5';
 
 /** Anthropic Messages endpoint */
 const API_URL = 'https://api.anthropic.com/v1/messages';
