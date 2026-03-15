@@ -1,0 +1,43 @@
+/* ─── Reset & base ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Brand palette */
+  --primary:       #6c63ff;
+  --primary-light: #8b83ff;
+  --primary-dark:  #4a42d4;
+  --accent:        #ff6584;
+  --accent-light:  #ff8fa3;
+
+  /* Neutrals */
+  --bg:            #0f0f1a;
+  --surface:       #1a1a2e;
+  --surface-2:     #242440;
+  --border:        rgba(255,255,255,0.08);
+  --text:          #e8e8f0;
+  --text-muted:    rgba(232,232,240,0.55);
+
+  /* Spacing */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.4,0,0.2,1);
+}
+
+html {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+}
