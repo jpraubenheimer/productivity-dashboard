@@ -1,7 +1,7 @@
 /**
  * Vercel Serverless Function: /api/generate-tip
  *
- * Receives a task name via POST, calls the Claude API (claude-3-5-sonnet-20240620),
+ * Receives a task name via POST, calls the Claude API (claude-3-haiku-20240307),
  * and returns a short, fun motivational tip for completing that task.
  *
  * The API key lives only in the server environment — it is never
@@ -28,12 +28,18 @@ import Anthropic from '@anthropic-ai/sdk';
  *   Marketing name  →  "Claude 3.5 Sonnet"
  *   API model ID    →  "claude-3-5-sonnet-20240620"  (period becomes hyphen)
  *
- * Available snapshots (see https://docs.anthropic.com/en/docs/about-claude/models):
- *   claude-3-5-sonnet-20240620   ← used here (Jun 2024)
- *   claude-3-5-sonnet-20241022   ← newer snapshot (Oct 2024)
- *   claude-3-haiku-20240307      ← fastest / cheapest option
+ * WHY claude-3-haiku-20240307?
+ *   Claude 3.5 Sonnet (claude-3-5-sonnet-20240620 / 20241022) requires a paid
+ *   Anthropic account tier.  Claude 3 Haiku is available on all tiers and is
+ *   the fastest / most cost-efficient option for short motivational tips.
+ *   Upgrade path — swap the constant below once your Anthropic account has
+ *   Claude 3.5 Sonnet access:
+ *     claude-3-5-sonnet-20240620   ← Claude 3.5 Sonnet (Jun 2024)
+ *     claude-3-5-sonnet-20241022   ← Claude 3.5 Sonnet (Oct 2024, latest)
+ *
+ * See https://docs.anthropic.com/en/docs/about-claude/models for all IDs.
  */
-const MODEL = 'claude-3-5-sonnet-20240620';
+const MODEL = 'claude-3-haiku-20240307';
 
 export default async function handler(req, res) {
   // ── 1. Method guard ───────────────────────────────────────────────────────
