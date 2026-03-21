@@ -447,6 +447,303 @@
   color: #fff;
 }
 
+/* ─── Show Report button ───────────────────────────────────────── */
+.report-btn-row {
+  display: flex;
+  justify-content: center;
+}
+
+.show-report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(108,99,255,0.08));
+  border: 1.5px solid rgba(108,99,255,0.45);
+  color: var(--primary-light);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease),
+              transform 0.15s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.show-report-btn:hover {
+  background: rgba(108,99,255,0.28);
+  border-color: rgba(108,99,255,0.75);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(108,99,255,0.3);
+}
+
+.show-report-btn:active {
+  transform: translateY(0);
+}
+
+/* ─── Report modal backdrop ────────────────────────────────────── */
+.report-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s var(--ease) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Report modal panel ───────────────────────────────────────── */
+.report-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+  width: 100%;
+  max-width: 1050px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.25s var(--ease) both;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Modal header ─────────────────────────────────────────────── */
+.report-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  flex-shrink: 0;
+}
+
+.report-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.report-modal-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
+}
+
+.report-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.report-modal-subtitle {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.65);
+  margin: 3px 0 0;
+}
+
+.report-close-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s var(--ease);
+  flex-shrink: 0;
+}
+
+.report-close-btn:hover {
+  background: rgba(255,255,255,0.28);
+}
+
+/* ─── Modal body (PDF + summary side-by-side) ──────────────────── */
+.report-modal-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── PDF panel ────────────────────────────────────────────────── */
+.report-pdf-panel {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.report-pdf-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  min-height: 0;
+  background: #fff;
+}
+
+.report-pdf-fallback {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0.4rem;
+  flex-shrink: 0;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+}
+
+.report-pdf-fallback a {
+  color: var(--primary-light);
+  text-decoration: none;
+}
+
+.report-pdf-fallback a:hover {
+  text-decoration: underline;
+}
+
+/* ─── AI summary panel ─────────────────────────────────────────── */
+.report-summary-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  gap: 1rem;
+  overflow-y: auto;
+  background: var(--surface-2);
+}
+
+.report-summary-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.report-summary-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.report-summary-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Idle */
+.report-summary-idle {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.report-summary-idle-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Loading */
+.report-summary-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 1rem 0;
+}
+
+/* Result */
+.report-summary-result {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.report-summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.report-summary-line {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(108,99,255,0.08);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 6px 6px 0;
+}
+
+/* Error */
+.report-summary-error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.report-summary-error-text {
+  font-size: 0.83rem;
+  color: var(--accent-light);
+  background: rgba(255,101,132,0.1);
+  border: 1px solid rgba(255,101,132,0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Shared button style */
+.report-summary-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s var(--ease), transform 0.15s var(--ease);
+  box-shadow: 0 2px 10px rgba(108,99,255,0.35);
+  align-self: flex-start;
+}
+
+.report-summary-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.report-summary-btn-sm {
+  font-size: 0.78rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(108,99,255,0.2);
+  box-shadow: none;
+  border: 1px solid rgba(108,99,255,0.35);
+  color: var(--primary-light);
+}
+
 /* ─── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 520px) {
   .header {
@@ -470,5 +767,17 @@
     font-size: 0.72rem;
     padding: 0.3rem 0.5rem;
     min-width: 60px;
+  }
+  /* Stack PDF and summary vertically on mobile */
+  .report-modal-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 55vh auto;
+  }
+  .report-pdf-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .report-modal {
+    max-height: 95vh;
   }
 }

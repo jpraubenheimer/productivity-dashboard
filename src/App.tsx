@@ -17,6 +17,7 @@ import type { Task } from './types'
 import Header from './components/Header'
 import AddTaskForm from './components/AddTaskForm'
 import TaskList from './components/TaskList'
+import ReportViewer from './components/ReportViewer'
 import './App.css'
 
 // localStorage key — change this if you need multiple dashboard instances
@@ -43,6 +44,9 @@ function loadTasks(): Task[] {
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(loadTasks)
+
+  /** Controls visibility of the Research Report modal */
+  const [showReport, setShowReport] = useState(false)
 
   // Persist every time tasks change
   useEffect(() => {
@@ -96,6 +100,19 @@ export default function App() {
           />
         </main>
 
+        {/* ── Research Report button ────────────────────────────────── */}
+        <div className="report-btn-row">
+          <button
+            className="show-report-btn"
+            onClick={() => setShowReport(true)}
+            aria-haspopup="dialog"
+            title="Open the latest research report with AI summary"
+          >
+            <span aria-hidden="true">📄</span>
+            Show Latest Research Report
+          </button>
+        </div>
+
         <footer className="app-footer">
           <p>
             Tasks saved locally • AI tips powered by{' '}
@@ -109,6 +126,11 @@ export default function App() {
           </p>
         </footer>
       </div>
+
+      {/* ── Research Report modal (portal-style, outside container) ── */}
+      {showReport && (
+        <ReportViewer onClose={() => setShowReport(false)} />
+      )}
     </div>
   )
 }
